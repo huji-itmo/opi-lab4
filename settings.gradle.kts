@@ -13,3 +13,9 @@ plugins {
 
 rootProject.name = "lab3"
 include("app")
+
+// REACT + Three.js
+// Полное функциональное покрытие тестовое
+// Автоматические тесты, и настроить CI/CD для автоматического тест
+
+// JAX RS

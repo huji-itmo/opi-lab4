@@ -14,8 +14,17 @@ repositories {
 }
 
 dependencies {
-    implementation("jakarta.servlet:jakarta.servlet-api:5.0.0")
+    // implementation("jakarta.servlet:jakarta.servlet-api:5.0.0")
     implementation("com.google.code.gson:gson:2.11.0");
+
+    compileOnly("javax:javaee-api:8.0")
+    compileOnly("javax.faces:javax.faces-api:2.3")
+    implementation("org.hibernate.orm:hibernate-core:6.6.1.Final")
+    implementation("org.postgresql:postgresql:42.7.3")
+
+    // https://mvnrepository.com/artifact/org.primefaces/primefaces
+    implementation("org.primefaces:primefaces:14.0.9")
+
 
     testImplementation(platform("org.junit:junit-bom:5.11.3"))
 	testImplementation("org.junit.jupiter:junit-jupiter")
@@ -41,18 +50,22 @@ java {
     }
 }
 
+tasks.register("copyWar", Copy::class) {
+    dependsOn("war")
+
+    from("build/libs/") {
+        include("*.war")
+    }
+    into("docker/deoyments")
+}
+
 tasks.create("deploy_local") {
 
-    dependsOn("war")
+    dependsOn("copyWar")
 
     doLast {
         exec {
-            workingDir("..")
-            commandLine("cp", "app/build/libs/*.war", "docker/deployments")
-        }
-
-        exec {
-            workingDir("docker")
+            workingDir("../docker")
             commandLine("docker", "compose", "up")
         }
     }

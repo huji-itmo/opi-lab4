@@ -10,14 +10,10 @@
 <h:head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Лаба 1</title>
+    <title>Лаба 3</title>
     <script defer="defer" src="create_board.js"></script>
     <script defer="defer" src="index.js"></script>
-    <script
-        type="text/javascript"
-        charset="UTF-8"
-        src="https://cdn.jsdelivr.net/npm/jsxgraph/distrib/jsxgraphsrc.js">
-    </script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jsxgraph/distrib/jsxgraphsrc.js"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/jsxgraph/distrib/jsxgraph.css" />
     <link rel="stylesheet" type="text/css" href="index.css" />
 
@@ -87,6 +83,7 @@
                 </h:commandButton>
             </h:form>
         </section>
+
         <div id="jxgbox" class="jxgbox" style="width:20rem; height:20rem;"></div>
 
         <footer>
@@ -123,6 +120,5 @@
         var generatedJsonString = `#{graphStateBean.pointsJsonCache}`;
     </h:outputScript>
 
-    <!-- <h:outputScript library="js" name="script.js" /> -->
 </h:body>
 </html>

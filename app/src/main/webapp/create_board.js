@@ -210,5 +210,4 @@ board.on("down", (e) => {
     let y = coords.usrCoords[2]
 
     onBoardClick(x, y)
-    // sendRequest(x.toFixed(1),y,currentRValue);
 });

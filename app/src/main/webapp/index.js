@@ -10,7 +10,6 @@ const onSubmit = (event) => {
 }
 
 const onRInputChange = (event, ui) => {
-    console.log("sadsd")
     changeBoardR(ui.value.toFixed(0));
 }
 
@@ -26,15 +25,12 @@ class FormValidator {
             return false;
         }
 
-        // alert("");
         return true;
     };
 
     checkYInput = () => {
         if (this.form_y_input.value === "") {
-            alert(
-                "Это поле не должно быть пустым."
-            );
+            alert("Это поле не должно быть пустым.");
             return false;
         }
 
@@ -52,7 +48,6 @@ class FormValidator {
             return false;
         }
 
-        // alert("");
         return true;
     };
 
@@ -68,7 +63,6 @@ class FormValidator {
             return false;
         }
 
-        // alert("");
         return true;
     };
 
@@ -152,6 +146,7 @@ const afterAjax = (data) => {
     x = form_validator.form_x_input.value;
     y = form_validator.form_y_input.value;
     r = form_validator.form_r_input.value;
+
     hit = document.getElementById("main-form:cached-hit").innerText == "true";
     server_time = document.getElementById("main-form:cached-server-time").innerText;
 
@@ -172,7 +167,6 @@ const afterAjax = (data) => {
 const onBoardClick = (x,y) => {
     form_validator.form_x_input.value = x.toFixed(0);
     form_validator.form_y_input.value = y.toFixed(2);
-    // form_validator.form_r_input.value;
 
     form_validator.submit_button.dispatchEvent(new Event('click'));
 }

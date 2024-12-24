@@ -121,7 +121,7 @@ const addPointFromData = (json) => {
 
 async function loadHitHistory() {
 
-    changeBoardR(1);
+    changeBoardR((+form_validator.form_r_input.value).toFixed(0));
 
     let json = JSON.parse(generatedJsonString)
 

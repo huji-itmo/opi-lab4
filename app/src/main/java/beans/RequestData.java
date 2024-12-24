@@ -13,9 +13,9 @@ import lombok.NoArgsConstructor;
 @Data
 public class RequestData implements Serializable {
 
-    Double x;
-    Double y;
-    Integer r;
+    private Long x;
+    private Double y;
+    private Long r;
 
     public void throwIfBadData() throws MissingParametersException, BadParameterException {
         throwIfXYRParametersEmpty();
@@ -49,7 +49,7 @@ public class RequestData implements Serializable {
         }
     }
 
-    private int checkRValue() throws BadParameterException {
+    private long checkRValue() throws BadParameterException {
         if (r < 1 || r > 5) {
             throw new BadParameterException("R parameter must be in range [1,5]");
         }
@@ -58,29 +58,16 @@ public class RequestData implements Serializable {
     }
 
     private double checkYValue() throws BadParameterException {
-        if (y < -3.0D || y > 3.0D) {
-            throw new BadParameterException("Y parameter must be in range [-3,3]");
+        if (y < -5.0D || y > 5.0D) {
+            throw new BadParameterException("Y parameter must be in range [-5,3]");
         }
 
         return y;
     }
 
-    private double checkXValue() throws BadParameterException {
-        if (x < -2.0D || x > 2.0D) {
-            throw new BadParameterException("X parameter must be in range [-2,2]");
-        }
-
-        boolean isGood = false;
-
-        for (double num = -2.0D; num < 2.5D; num += 0.5D) {
-            if (x == num) {
-                isGood = true;
-                break;
-            }
-        }
-
-        if (!isGood) {
-            throw new BadParameterException("X parameter must be a multiple of 0.5");
+    private long checkXValue() throws BadParameterException {
+        if (x <= -5L || x >= 3L) {
+            throw new BadParameterException("X parameter must be in range [-5,3]");
         }
 
         return x;

@@ -4,17 +4,17 @@ public class CoordinateSpace {
 
     public static boolean testHit(RequestData data) {
 
-        if (data.y >= 0) {
+        if (data.getY() >= 0) {
 
-            double upperLimit = topBatman(data.x, data.r);
+            double upperLimit = topBatman(data.getX(), data.getR());
 
-            return upperLimit >= data.y;
+            return upperLimit >= data.getY();
 
         } else {
 
-            double bottomLimit = bottomBatman(data.x, data.r);
+            double bottomLimit = bottomBatman(data.getX(), data.getR());
 
-            return bottomLimit <= data.y;
+            return bottomLimit <= data.getY();
         }
     }
 

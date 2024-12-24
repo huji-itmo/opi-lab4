@@ -1,10 +1,12 @@
-<!DOCTYPE html>
-    <html lang="ru"
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="ru"
       xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
       xmlns:f="http://java.sun.com/jsf/core"
       xmlns:ui="http://java.sun.com/jsf/facelets"
-      xmlns:p="http://primefaces.org/ui>
+      xmlns:p="http://primefaces.org/ui">
 <h:head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -16,12 +18,6 @@
         charset="UTF-8"
         src="https://cdn.jsdelivr.net/npm/jsxgraph/distrib/jsxgraphsrc.js">
     </script>
-    <script
-        src="https://code.jquery.com/jquery-3.7.1.js"
-        integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
-        crossorigin="anonymous">
-    </script>
-
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/jsxgraph/distrib/jsxgraph.css" />
     <link rel="stylesheet" type="text/css" href="index.css" />
 
@@ -31,59 +27,73 @@
     <div class="main-holder">
 
         <section class="input-section">
-            <form name="main" id="main-form">
-                <p>Введите значение X</p>
+            <h:form name="main" id="main-form">
+                <h5 class="mt-0">Введите значение X</h5>
+                <h:panelGrid columns="1" style="margin-bottom: 10px">
+                    <p:inputText id="form-x-input" value="#{graphStateBean.XToSend}"
+                        validatorMessage="Введите значение x в диапазоне [-5;3].">
+                        <f:validateRequired/>
+                        <f:validateDoubleRange minimum="-5" maximum="3"/>
+                        <f:ajax event="keyup" render="x-warning" execute="form-x-input"/>
+                        <f:ajax render="form-x-input"/>
+                    </p:inputText>
+                    <p:slider for="form-x-input" minValue="-5" maxValue="3" step="1">
+                        <f:validateRequired />
+                        <f:validateLongRange minimum="-5" maximum="3"/>
+                    </p:slider>
+                </h:panelGrid>
+                <p><h:message id="x-warning" styleClass="warning" for="form-x-input"/></p>
 
-                <p:selectBooleanCheckbox value="#{selectBooleanView.value2}" itemLabel="Ajax">
-                    <p:ajax update="msg" listener="#{selectBooleanView.addMessage}"/>
-                </p:selectBooleanCheckbox>
-<!--
-                <select id="form-x-input" name="x" required="request">
-                    <option value="">Выберите значение X</option>
-                    <option value="-2.0"> -2.0</option>
-                    <option value="-1.5"> -1.5</option>
-                    <option value="-1.0"> -1.0</option>
-                    <option value="-0.5"> -0.5</option>
-                    <option value="0.0"> 0.0</option>
-                    <option value="0.5"> 0.5</option>
-                    <option value="1.0"> 1.0</option>
-                    <option value="1.5"> 1.5</option>
-                    <option value="2.0"> 2.0</option>
-                </select> -->
 
-                <p>Введите значение Y </p>
-
-                <input id="form-y-input"
-                    name="y"
-                    placeholder="-3...3"
-                    type="text"
-                    required="required"
-                    pattern="^-?\d+([\.,]\d+)?$" />
+                <h5 class="mt-0">Введите значение Y</h5>
+                <h:panelGrid columns="1" style="margin-bottom: 10px">
+                    <p:inputText id="form-y-input" value="#{graphStateBean.YToSend}"
+                        validatorMessage="Введите значение y в диапазоне [-5;3].">
+                        <f:validateRequired/>
+                        <f:validateDoubleRange minimum="-5" maximum="3"/>
+                        <f:ajax event="keyup" render="y-warning" execute="form-y-input"/>
+                        <f:ajax render="form-y-input"/>
+                    </p:inputText>
+                    <p:slider for="form-y-input" minValue="-5" maxValue="3" step="0.01">
+                        <f:validateRequired />
+                        <f:validateDoubleRange minimum="-5" maximum="3"/>
+                    </p:slider>
+                </h:panelGrid>
+                <p><h:message id="y-warning" styleClass="warning" for="form-y-input"/></p>
 
                 <p>Введите значение R </p>
+                <h:panelGrid columns="1" style="margin-bottom: 10px">
+                    <p:inputText id="form-r-input" value="#{graphStateBean.RToSend}"
+                        validatorMessage="Введите значение r в диапазоне [1;5].">
+                        <f:validateRequired/>
+                        <f:validateLongRange minimum="1" maximum="5"/>
+                        <f:ajax event="keyup" render="r-warning" execute="form-r-input"/>
+                        <f:ajax render="form-r-input"/>
+                    </p:inputText>
+                    <p:slider for="form-r-input" minValue="1" maxValue="5" step="1" onSlide="onRInputChange(event, ui)">
+                        <f:validateRequired />
+                        <f:validateLongRange minimum="1" maximum="5"/>
+                    </p:slider>
+                </h:panelGrid>
+                <p><h:message id="r-warning" styleClass="warning" for="form-r-input"/></p>
 
-                <div>
-                    <input class="form-r-buttons" value="1" type="button"/>
-                    <input class="form-r-buttons" value="2" type="button"/>
-                    <input class="form-r-buttons" value="3" type="button"/>
-                    <input class="form-r-buttons" value="4" type="button"/>
-                    <input class="form-r-buttons" value="5" type="button"/>
-                </div>
+                <h:outputText id="cached-hit" value="#{graphStateBean.cachedHit}" style="display: none;"></h:outputText>
+                <h:outputText id="cached-server-time" value="#{graphStateBean.cachedServerTime}" style="display: none;"></h:outputText>
+                <h:outputText id="cached-duration-milli-seconds" value="#{graphStateBean.cachedDurationMilliSeconds}" style="display: none;"></h:outputText>
 
-                <input id="form-r-input" value="" name="r" tabindex="-1" style="pointer-events: none;" required="required" type="text"/>
-                <br></br>
-
-                <input class="centered" value="Запустить ракеты" type="button" id="submit-button" /></input>
-
-            </form>
+                <h:commandButton id="submit-button" value="Запустить ракеты"
+                    action="#{graphStateBean.addPointToDatabase()}">
+                    <f:ajax onevent="afterAjax" execute="@form" render="table jxgbox cached-hit cached-server-time cached-duration-milli-seconds"/>
+                </h:commandButton>
+            </h:form>
         </section>
         <div id="jxgbox" class="jxgbox" style="width:20rem; height:20rem;"></div>
 
         <footer>
-            <h:dataTable id="table" value="#{graphBean.points}" var="data">
+            <h:dataTable id="table" value="#{graphStateBean.cachedPoints}" var="data">
                 <h:column>
                     <f:facet name="header">Значение X</f:facet>
-                    #{"%.1f".formatted(data.getX())}
+                    #{"%d".formatted(data.getX())}
                 </h:column>
                 <h:column>
                     <f:facet name="header">Значение Y</f:facet>
@@ -95,7 +105,7 @@
                 </h:column>
                 <h:column>
                     <f:facet name="header">Попадание</f:facet>
-                    #{data.isHit() ? "Yes" : "No"}
+                    #{data.getHit() ? "Yes" : "No"}
                 </h:column>
                 <h:column>
                     <f:facet name="header">Время выполнения (миллисекунды)</f:facet>
@@ -110,7 +120,7 @@
     </div>
 
     <h:outputScript>
-        var generatedJsonString = "#{graphBean.pointsJson}";
+        var generatedJsonString = `#{graphStateBean.pointsJsonCache}`;
     </h:outputScript>
 
     <!-- <h:outputScript library="js" name="script.js" /> -->

@@ -1,16 +1,24 @@
 
 const API_ENDPOINT = "/controller"
 
-const handleResponseError = async (responseText) => {
-    console.log(responseText);
-    let bodyMessage = responseText.split("<body>", 2)[1].split("</body>", 2)[0];
-    alert(bodyMessage);
+const onSubmit = (event) => {
+    if (!form_validator.checkAllValid()) {
+        return;
+    }
+
+    changeBoardR(form_validator.form_r_input.value)
+}
+
+const onRInputChange = (event, ui) => {
+    console.log("sadsd")
+    changeBoardR(ui.value.toFixed(0));
 }
 
 class FormValidator {
     form_x_input;
     form_y_input;
     form_r_input;
+    submit_button;
 
     checkXInput = () => {
         if (this.form_x_input.value === "") {
@@ -37,9 +45,9 @@ class FormValidator {
             return false;
         }
 
-        if (this.form_y_input.value > 3 || this.form_y_input.value < -3) {
+        if (this.form_y_input.value > 3 || this.form_y_input.value < -5) {
             alert(
-                "Число должно быть в пределе [-3, 3]."
+                "Число y должно быть в пределе [-5, 3]."
             );
             return false;
         }
@@ -65,23 +73,13 @@ class FormValidator {
     };
 
     constructor() {
-        this.form_x_input = $("#form-x-input")[0];
-        this.form_y_input = $("#form-y-input")[0];
-        this.form_r_input = $("#form-r-input")[0];
+        this.form_x_input = document.getElementById("main-form:form-x-input");
+        this.form_y_input = document.getElementById("main-form:form-y-input");
+        this.form_r_input = document.getElementById("main-form:form-r-input");
+        this.submit_button = document.getElementById("main-form:submit-button");
 
-        $(".form-r-buttons").each((i, element) => {
-            $(element).on("click", () => {
-                $(this.form_r_input).val($(element).val());
-
-                $(".form-r-buttons").each((i, removeClass) => {
-                    $(removeClass).removeClass("r-button-selected");
-                });
-
-                $(element).addClass("r-button-selected");
-
-                changeBoardR($(this.form_r_input).val());
-            });
-        });
+        this.submit_button.addEventListener("click", onSubmit);
+        this.form_r_input.addEventListener("change", onRInputChange);
     }
 
     checkAllValid = () => {
@@ -97,47 +95,6 @@ class FormValidator {
 
 const form_validator = new FormValidator();
 const table_element = $("#table");
-
-var onSubmit = (event) => {
-
-    if (!form_validator.checkAllValid()) {
-        // alert("дерьмо");
-
-        return;
-    }
-
-    sendRequest(form_validator.form_x_input.value, form_validator.form_y_input.value, form_validator.form_r_input.value);
-}
-
-document.getElementById("submit-button").addEventListener("click", onSubmit);
-
-
-var sendRequest = async (x,y,r) => {
-    let request_body = JSON.stringify({ x: x, y: y, r: r });
-
-    $.ajax({
-        url: "/controller",
-        data: request_body,
-        type: "POST",
-        headers: {
-            accept: "application/json",
-            "Content-Type": "application/json"
-        },
-        dataType: "json",
-        success: function (data) {
-            if (data["error"] != undefined) {
-                alert(data.error);
-                return;
-            }
-
-            addPointFromData(data);
-        },
-        error: function (xhr, status, error) {
-
-            handleResponseError(xhr.responseText);
-        }
-    });
-}
 
 const addPointFromData = (json) => {
     let tableEntry = "<tr>";
@@ -166,26 +123,6 @@ async function loadHitHistory() {
 
     changeBoardR(1);
 
-    // let response = await fetch(API_ENDPOINT, {
-    //     method: "GET",
-    //     headers: {
-    //         accept: "application/json",
-    //     },
-    // }).catch(errorResponse => {
-    //     handleResponseError(errorResponse);
-    // });
-
-    // if (!response.ok) {
-    //     return;
-    // }
-
-    // let json = await response.json();
-
-    // if (json["error"] != undefined) {
-    //     alert(json.error);
-    //     return;
-    // }
-
     let json = JSON.parse(generatedJsonString)
 
     let i = 0;
@@ -205,3 +142,37 @@ async function loadHitHistory() {
 }
 
 loadHitHistory();
+
+const afterAjax = (data) => {
+
+    if (data.status !== 'success') {
+        return;
+    }
+
+    x = form_validator.form_x_input.value;
+    y = form_validator.form_y_input.value;
+    r = form_validator.form_r_input.value;
+    hit = document.getElementById("main-form:cached-hit").innerText == "true";
+    server_time = document.getElementById("main-form:cached-server-time").innerText;
+
+    console.log(x,y,r,hit,server_time)
+
+    createNewHitPoint(
+        x,
+        y,
+        r,
+        {
+            size: pointRadius,
+            name: server_time,
+            color: hit ? "green" : "red",
+        }
+    )
+}
+
+const onBoardClick = (x,y) => {
+    form_validator.form_x_input.value = x.toFixed(0);
+    form_validator.form_y_input.value = y.toFixed(2);
+    // form_validator.form_r_input.value;
+
+    form_validator.submit_button.dispatchEvent(new Event('click'));
+}

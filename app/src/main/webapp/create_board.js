@@ -22,7 +22,7 @@ const points = {
 
     enumerateMarkings: () => {
         let result = [
-            points.xMinusHalfR, 
+            points.xMinusHalfR,
             points.xPlusHalfR,
             points.yMinusHalfR,
             points.yPlusHalfR,
@@ -41,12 +41,12 @@ const points = {
 var currentRValue = defaultRValue;
 const changeBoardR = (value) => {
     board.suspendUpdate();
-    
+
     setVisiblePointsByR(currentRValue, false);
     setVisiblePointsByR(value, true);
 
-    scalePointsBy(points.enumerateMarkings(), value/currentRValue)    
-    
+    scalePointsBy(points.enumerateMarkings(), value/currentRValue)
+
     currentRValue = value;
     remakeGraphs(topBatmanFunction, bottomBatmanFunction, currentRValue);
 
@@ -85,7 +85,7 @@ const topBatman = (xValue,r) =>  {
     }
     else if(x<r) {
         y=((r*3)/(7)) * Math.sqrt(-(((x)/(r))**2)+1)
-    } 
+    }
     return y;
 }
 
@@ -96,11 +96,11 @@ const bottomBatman = (xValue,r) => {
     if (x<(r*4)/(7)) {
         y=x/2 - ((r*(3*Math.sqrt(33)-7))/(784))*((7*x)/(r))**2 + (r/7) * Math.sqrt(1-(Math.abs((7*x/r)-2)-1)**2)-(r*3)/7
     }
-    
+
     else if (x<r) {
         y=-((r*3)/7)*Math.sqrt(-((x/r)**2) + 1)
     }
-    
+
     return y;
 }
 
@@ -152,7 +152,7 @@ const remakeGraphs = (topFunction, bottomFunction, rValue) => {
     topGraph = board.create("functiongraph",
         [topFunction, -rValue, rValue]
      );
-    
+
     bottomGraph = board.create("functiongraph",
         [bottomFunction, -rValue, rValue]
     );
@@ -160,8 +160,8 @@ const remakeGraphs = (topFunction, bottomFunction, rValue) => {
     i1 = board.create("integral", [
         [-rValue, rValue], topGraph
       ], integralOptions);
-    
-    
+
+
     i2 = board.create("integral", [
         [-rValue, rValue], bottomGraph
       ], integralOptions);
@@ -209,5 +209,6 @@ board.on("down", (e) => {
     let x = coords.usrCoords[1]
     let y = coords.usrCoords[2]
 
-    sendRequest(x.toFixed(1),y,currentRValue);
+    onBoardClick(x, y)
+    // sendRequest(x.toFixed(1),y,currentRValue);
 });

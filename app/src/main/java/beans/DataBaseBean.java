@@ -1,23 +1,31 @@
 package beans;
 
 
+import java.util.List;
 import java.util.concurrent.LinkedBlockingDeque;
 
+import javax.enterprise.context.Conversation;
+import javax.faces.bean.ApplicationScoped;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.query.criteria.HibernateCriteriaBuilder;
+import org.hibernate.query.criteria.JpaCriteriaQuery;
+import org.primefaces.model.map.Point;
 
 import hz_kak_nazvat.HibernateSessionFactory;
+import lombok.Getter;
 
 @ManagedBean(name = "dataBase", eager = true)
-@SessionScoped
+@ApplicationScoped
+@Getter
 public class DataBaseBean {
     private String result;
     private SessionFactory sessionFactory;
-    private LinkedBlockingDeque<HitResult> points;
+    private List<HitResult> points;
 
     public DataBaseBean() {
         try {
@@ -27,7 +35,6 @@ public class DataBaseBean {
             throw new RuntimeException(ex);
         }
     }
-
 
     public String addPoint(HitResult hitResult) {
         Transaction transaction = null;
@@ -45,11 +52,6 @@ public class DataBaseBean {
         }
     }
 
-
-    public LinkedBlockingDeque<HitResult> getPoints() {
-        return points;
-    }
-
     public void shutdown() {
         if (sessionFactory != null) {
             sessionFactory.close();
@@ -58,7 +60,7 @@ public class DataBaseBean {
 
     public String getAllPoints() {
         try (Session session = sessionFactory.openSession()) {
-            points = new LinkedBlockingDeque<>(session.createQuery("FROM HitResult", HitResult.class).getResultList());
+            points = session.createQuery("FROM HitResult", HitResult.class).getResultList();
             result = "goToTablePage";
             return result;
         }

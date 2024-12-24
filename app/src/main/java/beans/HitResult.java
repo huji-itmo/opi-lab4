@@ -19,23 +19,22 @@ public class HitResult implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @Column(name = "x")
-    Double x;
+    private Long x;
     @Column(name = "y")
-    Double y;
+    private Double y;
     @Column(name = "r")
-    Integer r;
+    private Long r;
     @Column(name = "hit")
-    boolean hit;
-
-    String durationMilliSeconds;
-
-    String serverTime;
+    private Boolean hit;
+    @Column(name = "durationMilliSeconds")
+    private String durationMilliSeconds;
+    @Column(name = "serverTime")
+    private String serverTime;
 
     public String toJsonFields() {
         return String.format(Locale.US, """
-            "x": "%.1f", "y": "%.3f", "r": "%d", "hit":%s, "duration_milliseconds": "%s", "server_time": "%s"
+            "x": "%d", "y": "%.3f", "r": "%d", "hit":%s, "duration_milliseconds": "%s", "server_time": "%s"
             """,x,y,r, hit ? "true" : "false", durationMilliSeconds, serverTime);
     }
 
@@ -52,7 +51,7 @@ public class HitResult implements Serializable {
             """,x, y, r, hit ? "true" : "false", durationMilliSeconds, serverTime);
     }
 
-    public HitResult(Double x, Double y, Integer r, boolean hit, long durationNanoSeconds) {
+    public HitResult(Long x, Double y, Long r, boolean hit, long durationNanoSeconds) {
         DateTimeFormatter customFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
         String formattedDateCustom = ZonedDateTime.now().format(customFormatter);
 
@@ -64,13 +63,13 @@ public class HitResult implements Serializable {
         this.durationMilliSeconds = "%.3f ms".formatted((double)durationNanoSeconds / 1000000D);
     }
 
-    public static HitResult createNewHitData(Double x, Double y, Integer r, long startTime) throws MissingParametersException, BadParameterException {
+    public static HitResult createNewHitData(Long x, Double y, Long r, long startTime) throws MissingParametersException, BadParameterException {
 
         RequestData data = new RequestData(x,y,r);
         data.throwIfBadData();
         boolean hitResult = CoordinateSpace.testHit(data);
         long durationNanoSeconds = System.nanoTime() - startTime;
-        HitResult hitData = new HitResult(data.x, data.y, data.r, hitResult, durationNanoSeconds);
+        HitResult hitData = new HitResult(data.getX(), data.getY(), data.getR(), hitResult, durationNanoSeconds);
 
         return hitData;
     }
@@ -79,7 +78,7 @@ public class HitResult implements Serializable {
         data.throwIfBadData();
         boolean hitResult = CoordinateSpace.testHit(data);
         long durationNanoSeconds = System.nanoTime() - startTime;
-        HitResult hitData = new HitResult(data.x, data.y, data.r, hitResult, durationNanoSeconds);
+        HitResult hitData = new HitResult(data.getX(), data.getY(), data.getR(), hitResult, durationNanoSeconds);
 
         return hitData;
     }

@@ -1,14 +1,11 @@
 package beans;
 
 
-import java.util.ArrayList;
-import java.util.Deque;
 import java.util.List;
-import java.util.concurrent.LinkedBlockingDeque;
 
 import javax.annotation.PostConstruct;
-import javax.faces.bean.*;
-
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.SessionScoped;
 import javax.inject.Inject;
 
 import encoders.DataEncoder;
@@ -25,7 +22,7 @@ public class GraphStateBean {
 
     private Long XToSend = 0L;
     private Double YToSend = 0D;
-    private Long RToSend = 0L;
+    private Long RToSend = 1L;
 
     private Boolean cachedHit = null;
     private String cachedServerTime = null;
@@ -37,26 +34,29 @@ public class GraphStateBean {
 
     @PostConstruct
     public void init() {
-        dataBaseBean.getAllPoints();
+        dataBaseBean.cachePointsFromDatabase();
         pointsJsonCache = encoder.getEncodedHitTable("application/json", getCachedPoints().stream());
-        RToSend = 1L;
     }
 
     public List<HitResult> getCachedPoints() {
-        return dataBaseBean.getPoints();
+        return dataBaseBean.getCachedPoints();
     }
 
     public void addPointToDatabase() {
         if (isFormValid()) {
             HitResult newPoint;
+
             try {
-                newPoint = HitResult.createNewHitData(new RequestData(XToSend, YToSend, RToSend), System.nanoTime());
+                RequestData requestData = new RequestData(XToSend, YToSend, RToSend);
+                requestData.throwIfBadData();
+
+                newPoint = HitResult.createNewHitData(requestData, System.nanoTime());
+
                 cachedHit = newPoint.getHit();
                 cachedServerTime = newPoint.getServerTime();
                 cachedDurationMilliSeconds = newPoint.getDurationMilliSeconds();
 
-                getCachedPoints().add(newPoint);
-                dataBaseBean.addPoint(newPoint);
+                dataBaseBean.addPointToDatabase(newPoint);
                 pointsJsonCache = encoder.getEncodedHitTable("application/json", getCachedPoints().stream());
             } catch (MissingParametersException | BadParameterException e) {
                 System.err.println(e.getMessage());

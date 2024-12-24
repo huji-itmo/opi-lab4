@@ -2,32 +2,27 @@ package beans;
 
 
 import java.util.List;
-import java.util.concurrent.LinkedBlockingDeque;
 
-import javax.enterprise.context.Conversation;
+import javax.annotation.PostConstruct;
 import javax.faces.bean.ApplicationScoped;
 import javax.faces.bean.ManagedBean;
-import javax.faces.bean.SessionScoped;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.query.criteria.HibernateCriteriaBuilder;
-import org.hibernate.query.criteria.JpaCriteriaQuery;
-import org.primefaces.model.map.Point;
 
-import hz_kak_nazvat.HibernateSessionFactory;
+import hibernateHelpers.HibernateSessionFactory;
 import lombok.Getter;
 
 @ManagedBean(name = "dataBase", eager = true)
 @ApplicationScoped
 @Getter
 public class DataBaseBean {
-    private String result;
     private SessionFactory sessionFactory;
-    private List<HitResult> points;
+    private List<HitResult> cachedPoints;
 
-    public DataBaseBean() {
+    @PostConstruct
+    public void init() {
         try {
             sessionFactory = HibernateSessionFactory.getSessionFactory();
         } catch (Throwable ex) {
@@ -36,7 +31,9 @@ public class DataBaseBean {
         }
     }
 
-    public String addPoint(HitResult hitResult) {
+    public String addPointToDatabase(HitResult hitResult) {
+        cachedPoints.add(hitResult);
+
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
@@ -58,11 +55,11 @@ public class DataBaseBean {
         }
     }
 
-    public String getAllPoints() {
+    public List<HitResult> cachePointsFromDatabase() {
         try (Session session = sessionFactory.openSession()) {
-            points = session.createQuery("FROM HitResult", HitResult.class).getResultList();
-            result = "goToTablePage";
-            return result;
+            cachedPoints = session.createQuery("FROM HitResult", HitResult.class).getResultList();
         }
+
+        return cachedPoints;
     }
 }

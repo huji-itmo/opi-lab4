@@ -1,4 +1,4 @@
-package hz_kak_nazvat;
+package hibernateHelpers;
 
 import java.io.IOException;
 import java.util.Objects;

@@ -16,10 +16,12 @@ public class SmartDouble extends TypeAdapter<Double> {
 
     @Override
     public Double read(JsonReader in) throws IOException {
-
         String readString = in.nextString();
+        return parseDouble(readString);
+    }
 
-        Double parsedDouble = Double.parseDouble(readString);
+    public static Double parseDouble(String input) {
+        Double parsedDouble = Double.parseDouble(input);
 
         if (Double.isNaN(parsedDouble)) {
             throw new CantAcceptNaNsException("Program can't accept NaN value.");
@@ -27,10 +29,10 @@ public class SmartDouble extends TypeAdapter<Double> {
 
         String parsedString = Double.toString(parsedDouble);
 
-        if (readString.length() > parsedString.length()) {
+        if (input.length() > parsedString.length()) {
             int i = parsedString.length();
-            while (readString.length() > i) {
-                if (readString.charAt(i) != '0') {
+            while (input.length() > i) {
+                if (input.charAt(i) != '0') {
                     return parsedDouble += 0.00001D * Double.compare(parsedDouble, 0F);
                 }
                 i++;

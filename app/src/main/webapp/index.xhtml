@@ -66,7 +66,7 @@
 
                 <h:commandButton id="submit-button" value="Запустить ракеты"
                     action="#{graphStateBean.addPointToDatabase()}">
-                    <f:ajax onevent="afterAjaxHidden" execute="@form" render="table jxgbox cached-hit cached-server-time cached-duration-milli-seconds"/>
+                    <f:ajax onevent="hiddenFormValidator.addPointFromInput" execute="@form" render="table jxgbox cached-hit cached-server-time cached-duration-milli-seconds"/>
                 </h:commandButton>
             </h:form>
 
@@ -128,7 +128,7 @@
 
                 <h:commandButton id="submit-button" value="Запустить ракеты"
                     action="#{graphStateBean.addPointToDatabase()}">
-                    <f:ajax onevent="afterAjax" execute="@form" render="table jxgbox cached-hit cached-server-time cached-duration-milli-seconds"/>
+                    <f:ajax onevent="mainFormValidator.addPointFromInput" execute="@form" render="table jxgbox cached-hit cached-server-time cached-duration-milli-seconds"/>
                 </h:commandButton>
             </h:form>
         </section>

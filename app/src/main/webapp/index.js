@@ -1,22 +1,6 @@
 
-const API_ENDPOINT = "/controller"
-
-const onSubmit = (event) => {
-    if (!formValidator.checkAllValid()) {
-        return;
-    }
-
-    changeBoardR(formValidator.formRInput.value)
-}
-
 const onRInputChange = (event, ui) => {
     changeBoardR(ui.value.toFixed(0));
-}
-
-const onXInputChange = (event, ui) => {
-}
-
-const onYInputChange = (event, ui) => {
 }
 
 class FormValidator {
@@ -24,6 +8,9 @@ class FormValidator {
     formYInput;
     formRInput;
     submitButton;
+
+    cachedHit;
+    cachedServerTime;
 
     form_id;
 
@@ -80,10 +67,12 @@ class FormValidator {
         this.formXInput = document.getElementById(`${form_id}:form-x-input`);
         this.formYInput = document.getElementById(`${form_id}:form-y-input`);
         this.formRInput = document.getElementById(`${form_id}:form-r-input`);
-        this.submitButton = document.getElementById(`${form_id}}:submit-button`);
+        this.cachedHit = document.getElementById(`${form_id}:cached-hit`)
+        this.cachedServerTime = document.getElementById(`${form_id}:cached-server-time`)
+        this.submitButton = document.getElementById(`${form_id}:submit-button`);
+
         this.form_id = form_id;
 
-        this.submitButton.addEventListener("click", onSubmit);
         this.formRInput.addEventListener("change", onRInputChange);
     }
 
@@ -96,12 +85,29 @@ class FormValidator {
 
         return !isNotValid;
     }
+
+    addPointFromInput = (data) => {
+        if (data.status !== 'success' || !this.checkAllValid()) {
+            return;
+        }
+
+        let x = this.formXInput.value;
+        let y = this.formYInput.value;
+        let r = this.formRInput.value;
+        let hit = document.getElementById(`${this.form_id}:cached-hit`).innerText == "true";
+        let serverTime = document.getElementById(`${this.form_id}:cached-server-time`).innerText;
+
+        console.log({x, y, r, serverTime, hit})
+
+        addPoint({x, y, r, serverTime, hit})
+    }
 }
 
-const formValidator = new FormValidator("main-form");
+const mainFormValidator = new FormValidator("main-form");
+const hiddenFormValidator = new FormValidator("hidden-form");
 
 async function loadHitHistory() {
-    changeBoardR((+formValidator.formRInput.value).toFixed(0));
+    changeBoardR((+mainFormValidator.formRInput.value).toFixed(0));
     cachedPoints.forEach(element => {
         addPoint(element);
     });
@@ -109,44 +115,12 @@ async function loadHitHistory() {
 
 loadHitHistory();
 
-const afterAjax = (data) => {
-
-    if (data.status !== 'success') {
-        return;
-    }
-
-    let x = formValidator.formXInput.value;
-    let y = formValidator.formYInput.value;
-    let r = formValidator.formRInput.value;
-
-    let hit = document.getElementById("main-form:cached-hit").innerText == "true";
-    let serverTime = document.getElementById("main-form:cached-server-time").innerText;
-
-    addPoint({x, y, r, serverTime, hit})
-}
-
-const afterAjaxHidden = (data) => {
-
-    if (data.status !== 'success') {
-        return;
-    }
-
-    let x = +document.getElementById("hidden-form:form-x-input").value;
-    let y = +document.getElementById("hidden-form:form-y-input").value;
-    let r = +document.getElementById("hidden-form:form-r-input").value;
-
-    let hit = document.getElementById("hidden-form:cached-hit").innerText == "true";
-    let serverTime = document.getElementById("hidden-form:cached-server-time").innerText;
-
-    addPoint({x, y, r, serverTime, hit})
-}
-
 const onBoardClick = (x,y) => {
-    document.getElementById("hidden-form:form-x-input").value = x.toFixed(0);
-    document.getElementById("hidden-form:form-y-input").value = y.toFixed(2);
-    document.getElementById("hidden-form:form-r-input").value = formValidator.formRInput.value;
+    hiddenFormValidator.formXInput.value = x.toFixed(0);
+    hiddenFormValidator.formYInput.value = y.toFixed(2);
+    hiddenFormValidator.formRInput.value = mainFormValidator.formRInput.value;
 
-    document.getElementById("hidden-form:submit-button").dispatchEvent(new Event('click'));
+    hiddenFormValidator.submitButton.dispatchEvent(new Event('click'));
 }
 
 function addPoint({x,y,r,hit,serverTime}) {

@@ -74,10 +74,11 @@ td, tr {
 }
 
 footer {
+    display:flex;
     /* position: fixed; */
     left: 0;
     bottom: 0;
-    height: 12rem;
+    max-height: 80%;
     margin: 2rem;
     text-align: center;
     background-color: #FFF5E4;

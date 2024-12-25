@@ -134,7 +134,7 @@ const table_element = document.getElementById("table");
 
 const addPointToTable = ({x,y,r,hit,serverTime, durationMilliseconds}) => {
     let tableEntry = "<tr>";
-    let data = [x, y, r, hit, durationMilliseconds, serverTime];
+    let data = [x, y, r, hit ? "Yes" : "No", durationMilliseconds, serverTime];
     data.forEach((str) => {
         tableEntry += `<td>${str}</td>`
     });

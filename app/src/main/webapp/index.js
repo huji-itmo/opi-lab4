@@ -96,10 +96,12 @@ class FormValidator {
         let r = this.formRInput.value;
         let hit = document.getElementById(`${this.form_id}:cached-hit`).innerText == "true";
         let serverTime = document.getElementById(`${this.form_id}:cached-server-time`).innerText;
+        let durationMilliseconds = document.getElementById(`${this.form_id}:cached-duration-milli-seconds`).innerText;
 
-        console.log({x, y, r, serverTime, hit})
+        // console.log({x, y, r, serverTime, hit})
 
         addPoint({x, y, r, serverTime, hit})
+        addPointToTable({x, y, r, serverTime, hit, durationMilliseconds})
     }
 }
 
@@ -125,4 +127,18 @@ const onBoardClick = (x,y) => {
 
 function addPoint({x,y,r,hit,serverTime}) {
     createNewHitPoint(x, y, r, { name: serverTime, color: hit ? "green" : "red", });
+}
+
+const table_element = document.getElementById("table");
+
+
+const addPointToTable = ({x,y,r,hit,serverTime, durationMilliseconds}) => {
+    let tableEntry = "<tr>";
+    let data = [x, y, r, hit, durationMilliseconds, serverTime];
+    data.forEach((str) => {
+        tableEntry += `<td>${str}</td>`
+    });
+    tableEntry += "</tr>";
+
+    table_element.innerHTML += tableEntry;
 }

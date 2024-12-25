@@ -23,11 +23,59 @@
     <div class="main-holder">
 
         <section class="input-section">
+            <h:form id="hidden-form" style="display: none;">
+                <h:panelGrid columns="1" style="margin-bottom: 10px">
+                    <p:inputText id="form-x-input" value="#{graphStateBean.XToSend}"
+                        disabled="false">
+                        <f:validateRequired/>
+                        <f:validateDoubleRange minimum="-5" maximum="3"/>
+                        <f:ajax render="form-x-input"/>
+                    </p:inputText>
+                    <p:slider for="form-x-input" minValue="-5" maxValue="3" step="1">
+                        <f:validateRequired />
+                        <f:validateLongRange minimum="-5" maximum="3"/>
+                    </p:slider>
+                </h:panelGrid>
+                <h:panelGrid columns="1" style="margin-bottom: 10px">
+                    <p:inputText id="form-y-input" value="#{graphStateBean.YToSend}"
+                        disabled="false">
+                        <f:validateRequired/>
+                        <f:validateDoubleRange minimum="-5" maximum="3"/>
+                        <f:ajax render="form-y-input"/>
+                    </p:inputText>
+                    <p:slider for="form-y-input" minValue="-5" maxValue="3" step="0.01">
+                        <f:validateRequired />
+                        <f:validateDoubleRange minimum="-5" maximum="3"/>
+                    </p:slider>
+                </h:panelGrid>
+                <h:panelGrid columns="1" style="margin-bottom: 10px">
+                    <p:inputText id="form-r-input" value="#{graphStateBean.RToSend}">
+                        <f:validateRequired/>
+                        <f:validateLongRange minimum="1" maximum="5"/>
+                        <f:ajax render="form-r-input"/>
+                    </p:inputText>
+                    <p:slider for="form-r-input" minValue="1" maxValue="5" step="1" onSlide="onRInputChange(event, ui)">
+                        <f:validateRequired />
+                        <f:validateLongRange minimum="1" maximum="5"/>
+                    </p:slider>
+                </h:panelGrid>
+
+                <h:outputText id="cached-hit" value="#{graphStateBean.cachedHit}" style="display: none;"></h:outputText>
+                <h:outputText id="cached-server-time" value="#{graphStateBean.cachedServerTime}" style="display: none;"></h:outputText>
+                <h:outputText id="cached-duration-milli-seconds" value="#{graphStateBean.cachedDurationMilliSeconds}" style="display: none;"></h:outputText>
+
+                <h:commandButton id="submit-button" value="Запустить ракеты"
+                    action="#{graphStateBean.addPointToDatabase()}">
+                    <f:ajax onevent="afterAjaxHidden" execute="@form" render="table jxgbox cached-hit cached-server-time cached-duration-milli-seconds"/>
+                </h:commandButton>
+            </h:form>
+
             <h:form name="main" id="main-form">
                 <h5 class="mt-0">Введите значение X</h5>
                 <h:panelGrid columns="1" style="margin-bottom: 10px">
                     <p:inputText id="form-x-input" value="#{graphStateBean.XToSend}"
-                        validatorMessage="Введите значение x в диапазоне [-5;3].">
+                        validatorMessage="Введите значение x в диапазоне [-5;3]."
+                        disabled="false">
                         <f:validateRequired/>
                         <f:validateDoubleRange minimum="-5" maximum="3"/>
                         <f:ajax event="keyup" render="x-warning" execute="form-x-input"/>
@@ -44,7 +92,8 @@
                 <h5 class="mt-0">Введите значение Y</h5>
                 <h:panelGrid columns="1" style="margin-bottom: 10px">
                     <p:inputText id="form-y-input" value="#{graphStateBean.YToSend}"
-                        validatorMessage="Введите значение y в диапазоне [-5;3].">
+                        validatorMessage="Введите значение y в диапазоне [-5;3]."
+                        disabled="false">
                         <f:validateRequired/>
                         <f:validateDoubleRange minimum="-5" maximum="3"/>
                         <f:ajax event="keyup" render="y-warning" execute="form-y-input"/>
@@ -117,8 +166,13 @@
     </div>
 
     <h:outputScript>
-        var generatedJsonString = `#{graphStateBean.pointsJsonCache}`;
+         var cachedPoints = []
     </h:outputScript>
 
+    <ui:repeat value="#{graphStateBean.cachedPoints}" var="data">
+        <h:outputScript>
+            cachedPoints.push({x:#{data.getX()}, y:#{data.getY()}, r:#{data.getR()}, hit:#{data.getHit()}, serverTime:`#{data.getServerTime()}`});
+        </h:outputScript>
+    </ui:repeat>
 </h:body>
 </html>

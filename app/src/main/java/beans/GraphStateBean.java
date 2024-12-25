@@ -28,14 +28,14 @@ public class GraphStateBean {
     private String cachedServerTime = null;
     private String cachedDurationMilliSeconds = null;
 
-    private String pointsJsonCache = "";
+    // private String pointsJsonCache = "";
     @Inject
     private DataBaseBean dataBaseBean;
 
     @PostConstruct
     public void init() {
         dataBaseBean.cachePointsFromDatabase();
-        pointsJsonCache = encoder.getEncodedHitTable("application/json", getCachedPoints().stream());
+        // pointsJsonCache = encoder.getEncodedHitTable("application/json", getCachedPoints().stream());
     }
 
     public List<HitResult> getCachedPoints() {
@@ -44,20 +44,18 @@ public class GraphStateBean {
 
     public void addPointToDatabase() {
         if (isFormValid()) {
-            HitResult newPoint;
-
             try {
                 RequestData requestData = new RequestData(XToSend, YToSend, RToSend);
                 requestData.throwIfBadData();
 
-                newPoint = HitResult.createNewHitData(requestData, System.nanoTime());
+                HitResult newPoint = HitResult.createNewHitData(requestData, System.nanoTime());
 
                 cachedHit = newPoint.getHit();
                 cachedServerTime = newPoint.getServerTime();
                 cachedDurationMilliSeconds = newPoint.getDurationMilliSeconds();
 
                 dataBaseBean.addPointToDatabase(newPoint);
-                pointsJsonCache = encoder.getEncodedHitTable("application/json", getCachedPoints().stream());
+                // pointsJsonCache = encoder.getEncodedHitTable("application/json", getCachedPoints().stream());
             } catch (MissingParametersException | BadParameterException e) {
                 System.err.println(e.getMessage());
             }

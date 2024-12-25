@@ -7,18 +7,23 @@ const board = JXG.JSXGraph.initBoard("jxgbox", {
 
 const pointRadius = 1;
 
+const pointOptions = {
+    size:pointRadius,
+    fixed: true
+}
+
 const points = {
-    xMinusHalfR: board.create("point", [-defaultRValue/2, 0], {size:pointRadius, name:"R/2"}),
-    xPlusHalfR: board.create("point", [defaultRValue/2, 0], {size:pointRadius, name:"R/2"}),
-    yMinusHalfR: board.create("point", [0, -defaultRValue/2], {size:pointRadius, name:"R/2"}),
-    yPlusHalfR: board.create("point", [0, defaultRValue/2], {size:pointRadius, name:"R/2"}),
+    xMinusHalfR: board.create("point", [-defaultRValue/2, 0], {...pointOptions, name:"R/2"}),
+    xPlusHalfR: board.create("point", [defaultRValue/2, 0], {...pointOptions, name:"R/2"}),
+    yMinusHalfR: board.create("point", [0, -defaultRValue/2], {...pointOptions, name:"R/2"}),
+    yPlusHalfR: board.create("point", [0, defaultRValue/2], {...pointOptions, name:"R/2"}),
 
-    xMinusR: board.create("point", [-defaultRValue, 0], {size:pointRadius, name:"R"}),
-    xPlusR: board.create("point", [defaultRValue,0], {size:pointRadius, name:"R"}),
-    yMinusR: board.create("point", [0, -defaultRValue], {size:pointRadius, name:"R"}),
-    yPlusR: board.create("point", [0, defaultRValue], {size:pointRadius, name:"R"}),
+    xMinusR: board.create("point", [-defaultRValue, 0], {...pointOptions, name:"R"}),
+    xPlusR: board.create("point", [defaultRValue,0], {...pointOptions, name:"R"}),
+    yMinusR: board.create("point", [0, -defaultRValue], {...pointOptions, name:"R"}),
+    yPlusR: board.create("point", [0, defaultRValue], {...pointOptions, name:"R"}),
 
-    center: board.create("point", [0, 0], {size:pointRadius, name:""}),
+    center: board.create("point", [0, 0], {...pointOptions, name:""}),
 
     enumerateMarkings: () => {
         let result = [
@@ -52,6 +57,8 @@ const changeBoardR = (value) => {
 
     board.unsuspendUpdate();
 }
+
+
 
 const setVisiblePointsByR = (r, visible) => {
     if (points.addedPointsMap[r] === undefined) {
@@ -169,7 +176,7 @@ const remakeGraphs = (topFunction, bottomFunction, rValue) => {
 
 const createNewHitPoint = (x,y,r, options) => {
 
-    let newPoint = board.create("point", [x,y], options);
+    let newPoint = board.create("point", [x,y], {...pointOptions, ...options});
 
     if (r != currentRValue) {
         newPoint.setAttribute({visible: false});
@@ -199,8 +206,6 @@ const isPointExistsAt = (x,y,r) => {
 
     return oldPoint;
 }
-
-
 
 board.on("down", (e) => {
     var pos = board.getMousePosition(e, 0);

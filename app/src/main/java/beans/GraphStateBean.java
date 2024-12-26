@@ -18,7 +18,7 @@ import lombok.Data;
 @SessionScoped
 @Data
 public class GraphStateBean {
-    private DataEncoder encoder = new JsonEncoder();
+    // private DataEncoder encoder = new JsonEncoder();
 
     private Long XToSend = 0L;
     private Double YToSend = 0D;

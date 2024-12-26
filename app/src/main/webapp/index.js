@@ -77,13 +77,15 @@ class FormValidator {
     }
 
     checkAllValid = () => {
-        let isNotValid = [
-            !this.checkRInput(),
-            !this.checkYInput(),
-            !this.checkXInput(),
-        ].reduce((prev, curr) => prev || curr);
+        // let isNotValid = [
+        //     !this.checkRInput(),
+        //     !this.checkYInput(),
+        //     !this.checkXInput(),
+        // ].reduce((prev, curr) => prev || curr);
 
-        return !isNotValid;
+        // return !isNotValid;
+
+        return this.checkRInput() && this.checkYInput() && this.checkXInput();
     }
 
     addPointFromInput = (data) => {

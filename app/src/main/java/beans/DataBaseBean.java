@@ -31,7 +31,7 @@ public class DataBaseBean {
         }
     }
 
-    public String addPointToDatabase(HitResult hitResult) {
+    public void addPointToDatabase(HitResult hitResult) {
         cachedPoints.add(hitResult);
 
         Transaction transaction = null;
@@ -39,13 +39,12 @@ public class DataBaseBean {
             transaction = session.beginTransaction();
             session.persist(hitResult);
             transaction.commit();
-            return "added " + hitResult;
+            System.out.println("added " + hitResult);
         } catch (Exception e) {
             if (transaction != null) {
                 transaction.rollback();
             }
             e.printStackTrace();
-            return "error";
         }
     }
 

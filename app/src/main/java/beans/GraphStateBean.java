@@ -8,8 +8,6 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 import javax.inject.Inject;
 
-import encoders.DataEncoder;
-import encoders.JsonEncoder;
 import exceptions.BadParameterException;
 import exceptions.MissingParametersException;
 import lombok.Data;

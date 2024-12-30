@@ -29,7 +29,7 @@ services:
     ports:
       - 5432:5432
     volumes:
-     - pg-data:/var/lib/postgresql/data:z
+     - pg-data:/var/lib/postgresql/data:Z
     environment:
       DB_CONNECTION: pgsql
       DB_HOST: pg

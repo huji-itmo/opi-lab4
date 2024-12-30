@@ -19,7 +19,7 @@ class FormValidator {
             alert("Выберите значение X.");
             return false;
         }
-        if (this.formYInput.value > 3 || this.formYInput.value < -5) {
+        if (this.formXInput.value > 3 || this.formXInput.value < -5) {
             alert("Число X должно быть в пределе [-5, 3].");
             return false;
         }

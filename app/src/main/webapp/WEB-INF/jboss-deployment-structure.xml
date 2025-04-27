@@ -2,7 +2,7 @@
 <jboss-deployment-structure>
     <deployment>
         <dependencies>
-            <module name="javax.faces.api" export="true"/>
+            <module name="javax.faces.api" export="true" />
             <module name="org.hibernate" />
         </dependencies>
     </deployment>

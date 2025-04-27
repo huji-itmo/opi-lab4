@@ -1,3 +1,8 @@
+import javax.xml.parsers.DocumentBuilderFactory
+import org.xml.sax.ErrorHandler
+import org.xml.sax.SAXParseException
+import org.gradle.api.GradleException
+
 plugins {
     id("java")
     id("war")
@@ -82,4 +87,56 @@ tasks.create("deploy_helios") {
             commandLine("sh", "deploy_helios.sh")
         }
     }
+}
+
+tasks.register("verifyXml") {
+    group = "Verification"
+    description = "Verifies XML files for well-formedness."
+
+    val xmlDir = file("src/main/resources")
+    inputs.dir(xmlDir)
+    outputs.dir(layout.buildDirectory.dir("xmlVerification"))
+
+    doLast {
+        val xmlFiles = project.fileTree(xmlDir) { include("**/*.xml") }
+        val errors = mutableListOf<String>() // Collect errors
+
+        xmlFiles.forEach { file ->
+            try {
+                val factory = DocumentBuilderFactory.newInstance()
+                factory.isValidating = false
+                val builder = factory.newDocumentBuilder()
+
+                builder.setErrorHandler(object : ErrorHandler {
+                    override fun warning(exception: SAXParseException) {
+                        logger.warn("⚠️ Warning in ${file.relativeTo(projectDir)}: ${exception.message}")
+                    }
+
+                    override fun error(exception: SAXParseException) {
+                        errors.add("❌ Error in ${file.relativeTo(projectDir)} (Line ${exception.lineNumber}): ${exception.message}")
+                    }
+
+                    override fun fatalError(exception: SAXParseException) {
+                        errors.add("💥 Fatal Error in ${file.relativeTo(projectDir)}: ${exception.message}")
+                    }
+                })
+
+                builder.parse(file)
+                logger.lifecycle("✅ Valid XML: ${file.relativeTo(projectDir)}")
+
+            } catch (e: Exception) {
+                errors.add("❗ Exception in ${file.relativeTo(projectDir)}: ${e.message}")
+            }
+        }
+
+        // Fail the build if there are errors
+        if (errors.isNotEmpty()) {
+            throw GradleException("XML validation failed:\n${errors.joinToString("\n")}")
+        }
+    }
+}
+
+
+tasks.named("check") {
+    dependsOn("verifyXml")
 }

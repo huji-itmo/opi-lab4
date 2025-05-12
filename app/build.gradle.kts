@@ -14,6 +14,8 @@ import org.gradle.api.file.DirectoryProperty
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+import java.io.ByteArrayOutputStream
+
 plugins {
     id("java")
     id("war")
@@ -366,4 +368,105 @@ tasks.register<Copy>("native2ascii") {
             }
         }.joinToString("")
     }
+}
+
+
+//====================================================
+
+
+tasks.register("team") {
+    group = "team"
+    description = "Builds two previous Git revisions and packages WARs into ZIP"
+
+    doLast {
+        val commits = getPreviousGitCommits()
+        require(commits.size >= 2) { "Requires at least two previous commits" }
+
+        val buildDir = layout.buildDirectory.get().asFile
+        val worktreesDir = File(buildDir, "team/worktrees")
+        val warsDir = File(buildDir, "team/wars")
+
+        worktreesDir.deleteRecursively()
+        warsDir.deleteRecursively()
+        warsDir.mkdirs()
+
+        commits.take(2).forEachIndexed { index, commit ->
+            val worktreeDir = File(worktreesDir, "v${index + 1}-${commit.take(7)}")
+            var warsFound = false
+
+            try {
+                // Create worktree
+                project.exec {
+                    commandLine("git", "worktree", "add", "--detach", worktreeDir, commit)
+                        .assertNormalExitValue()
+                }
+
+                // Build with wrapper
+                project.exec {
+                    workingDir(worktreeDir)
+                    commandLine("${project.rootDir}/gradlew", "build")
+                        .assertNormalExitValue()
+                }
+
+                // Find WAR files
+                val warFiles = fileTree(worktreeDir) {
+                    include("**/build/libs/*.war")
+                }
+
+                if (warFiles.isEmpty()) {
+                    throw GradleException("No WAR files found for commit $commit")
+                }
+
+                // Copy WARs with logging
+                warFiles.forEach { war ->
+                    val targetFile = File(warsDir, "v${index + 1}-${war.name}")
+                    println("Copying: ${war.path} -> ${targetFile.path}")
+                    war.copyTo(targetFile, overwrite = true)
+                    warsFound = true
+                }
+
+            } finally {
+                // Cleanup worktree
+                project.exec {
+                    commandLine("git", "worktree", "remove", "--force", worktreeDir.absolutePath)
+                        .assertNormalExitValue()
+                }
+            }
+
+            if (!warsFound) {
+                throw GradleException("Failed to collect WARs for commit $commit")
+            }
+        }
+
+        // Create ZIP only if wars exist
+        val warFiles = fileTree(warsDir)
+        if (warFiles.isEmpty()) {
+            throw GradleException("No WAR files collected - cannot create ZIP archive")
+        }
+
+        ant.withGroovyBuilder {
+            "zip"("destfile" to "$buildDir/team/previous-builds.zip") {
+                "fileset"("dir" to warsDir)
+            }
+        }
+
+        println("Successfully created archive with ${warFiles.count()} files: $buildDir/team/previous-builds.zip")
+    }
+}
+
+fun getPreviousGitCommits(): List<String> {
+    val output = ByteArrayOutputStream()
+    project.exec {
+        commandLine("git", "log", "--pretty=format:%H", "-n", "3")
+        standardOutput = output
+    }
+    return output.toString()
+        .trim()
+        .lines()
+        .drop(1)
+        .take(2)
+}
+
+fun ExecSpec.assertNormalExitValue() = apply {
+    isIgnoreExitValue = false
 }

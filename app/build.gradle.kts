@@ -11,12 +11,40 @@ import java.security.MessageDigest
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.file.DirectoryProperty
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 plugins {
     id("java")
     id("war")
     id("io.freefair.lombok") version "8.10"
 
 }
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("com.google.code.gson:gson:2.11.0");
+
+    compileOnly("javax:javaee-api:8.0")
+    compileOnly("javax.faces:javax.faces-api:2.3")
+    implementation("org.hibernate.orm:hibernate-core:6.6.1.Final")
+    implementation("org.postgresql:postgresql:42.7.3")
+    implementation("org.hibernate:hibernate-core:5.6.14.Final")
+    implementation("org.hibernate:hibernate-entitymanager:5.6.14.Final")
+
+
+    // https://mvnrepository.com/artifact/org.primefaces/primefaces
+    implementation("org.primefaces:primefaces:14.0.9")
+
+    testImplementation(platform("org.junit:junit-bom:5.11.3"))
+	testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("org.mockito:mockito-core:5.14.2")
+	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
 
 tasks.war {
     webAppDirectory.set(file("src/main/webapp"))
@@ -47,36 +75,12 @@ tasks.war {
     }
 }
 
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation("com.google.code.gson:gson:2.11.0");
-
-    compileOnly("javax:javaee-api:8.0")
-    compileOnly("javax.faces:javax.faces-api:2.3")
-    implementation("org.hibernate.orm:hibernate-core:6.6.1.Final")
-    implementation("org.postgresql:postgresql:42.7.3")
-    implementation("org.hibernate:hibernate-core:5.6.14.Final")
-    implementation("org.hibernate:hibernate-entitymanager:5.6.14.Final")
-
-
-    // https://mvnrepository.com/artifact/org.primefaces/primefaces
-    implementation("org.primefaces:primefaces:14.0.9")
-
-    testImplementation(platform("org.junit:junit-bom:5.11.3"))
-	testImplementation("org.junit.jupiter:junit-jupiter")
-    testImplementation("org.mockito:mockito-core:5.14.2")
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-
-}
-
 tasks.named<Test>("test") {
     useJUnitPlatform()
 
     testLogging {
 		events("passed", "skipped", "failed");
+        outputs.upToDateWhen { false }
 	}
 }
 
@@ -121,6 +125,12 @@ tasks.create("deploy_helios") {
         }
     }
 }
+
+tasks.create("scp") {
+    dependsOn("deploy_helios")
+}
+
+//====================================================
 
 tasks.register("verifyXml") {
     group = "Verification"
@@ -174,6 +184,7 @@ tasks.named("check") {
     dependsOn("verifyXml")
 }
 
+//====================================================
 
 
 fun calculateHash(file: File, algorithm: String): String {
@@ -220,4 +231,139 @@ tasks.create<Zip>("doc") {
 
     destinationDirectory.set(file("${buildDir}/distributions"))
     archiveFileName.set("${project.name}-${project.version}-doc.zip")
+}
+
+//====================================================
+
+
+tasks.register("report") {
+    dependsOn("test")
+    group = "Verification"
+    description = "Adds test reports to Git and commits them if tests passed"
+
+    onlyIf {
+        tasks.test.get().state.failure == null
+    }
+
+    doLast {
+        val testResultsDir = "test-results"
+
+        // Step 1: Clean the test-results directory
+        delete(testResultsDir)
+        mkdir(testResultsDir)
+
+        // Step 2: Copy build/test-results to test-results
+        copy {
+            from("build/test-results")
+            into(testResultsDir)
+        }
+
+        // Step 3: Check if there are any changes in test-results
+        val diffResult = exec {
+            commandLine("git", "diff", "--quiet", "--exit-code", "--", testResultsDir)
+            isIgnoreExitValue = true
+        }
+
+        if (diffResult.exitValue == 0) {
+            logger.lifecycle("No changes in test reports. Skipping commit.")
+        } else {
+            // Step 4: Add and commit the test reports
+            exec {
+                commandLine("git", "add", testResultsDir)
+            }
+
+            val commitMessage = "Update test reports: ${LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)}"
+            exec {
+                commandLine("git", "commit", "-m", commitMessage)
+            }
+
+            logger.lifecycle("Test reports committed with message: $commitMessage")
+        }
+    }
+}
+
+//====================================================
+
+
+val altSrcDir = "$buildDir/alt-src"
+val classesAltDir = "$buildDir/classes-alt"
+val altJarFile = "$buildDir/libs/alternative.jar"
+
+sourceSets {
+    create("alt") {
+        java.srcDir(altSrcDir)
+        compileClasspath = sourceSets.main.get().compileClasspath
+    }
+}
+
+tasks.register<Copy>("prepareAltSources") {
+    from(sourceSets.main.get().java)
+    into(altSrcDir)
+    include("**/*.java")
+    filter { line -> line.replace("GraphStateBean", "GraphMinisterStateBean") }
+
+    eachFile {
+        if (name == "GraphStateBean.java") {
+            name = "GraphMinisterStateBean.java"
+        }
+    }
+    includeEmptyDirs = false
+}
+
+tasks.register<JavaCompile>("compileAlt") {
+    source = sourceSets.getByName("alt").java
+    destinationDirectory.set(file(classesAltDir))
+    classpath = sourceSets.getByName("alt").compileClasspath
+    options.compilerArgs.add("-Xlint:all")
+
+    dependsOn("prepareAltSources")
+}
+
+tasks.register<Jar>("altJar") {
+    archiveFileName.set(file(altJarFile).name)
+    destinationDirectory.set(file(file(altJarFile).parent))
+
+    from({
+        tasks.named<JavaCompile>("compileAlt").get().destinationDirectory.get().asFile
+    })
+
+    doLast {
+        logger.lifecycle("Alternative jar: ${archiveFile.get()}")
+    }
+}
+
+tasks.register("alt") {
+    dependsOn("altJar")
+    group = "build"
+    description = "Build alternative JAR with modified sources"
+}
+tasks.register("cleanAlt") {
+    doLast {
+        delete(altSrcDir, classesAltDir, altJarFile)
+    }
+}
+
+//====================================================
+
+
+tasks.register<Copy>("native2ascii") {
+    group = "Localization"
+    description = "Converts localized files from UTF-8 to ASCII with Unicode escapes"
+
+    from("src/main/resources") {
+        include("**/*.properties")
+    }
+    into(layout.buildDirectory.dir("native2ascii"))
+
+    filteringCharset = "UTF-8"
+
+    filter { line ->
+        line.map { char ->
+            if (char.code > 127) {
+                "\\u%04X".format(char.code)
+            } else {
+                char
+            }
+        }.joinToString("")
+    }
 }

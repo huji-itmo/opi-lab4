@@ -93,7 +93,7 @@ tasks.register("verifyXml") {
     group = "Verification"
     description = "Verifies XML files for well-formedness."
 
-    val xmlDir = file("src/main/resources")
+    val xmlDir = file("src/main/")
     inputs.dir(xmlDir)
     outputs.dir(layout.buildDirectory.dir("xmlVerification"))
 

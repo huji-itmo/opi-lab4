@@ -470,3 +470,140 @@ fun getPreviousGitCommits(): List<String> {
 fun ExecSpec.assertNormalExitValue() = apply {
     isIgnoreExitValue = false
 }
+
+//==================================
+
+tasks.register("history") {
+    group = "history"
+    description = "Finds last working commit and generates diff with first broken"
+
+    doLast {
+        val buildDir = layout.buildDirectory.get().asFile
+        val worktreesDir = File(buildDir, "history/worktrees")
+        worktreesDir.deleteRecursively()
+
+        val allCommits = getGitCommitList()
+        var workingCommit: String? = null
+
+        for (commit in allCommits) {
+            val worktreeDir = File(worktreesDir, commit.take(7))
+            try {
+                // Создаем изолированную worktree для коммита
+                createGitWorktree(commit, worktreeDir)
+                println("Testing commit: ${commit.take(7)}")
+
+                // Пытаемся собрать проект в worktree
+                val result = project.exec {
+                    workingDir = worktreeDir
+                    commandLine = listOf("./gradlew", "build", "--no-daemon", "--stacktrace")
+                    isIgnoreExitValue = true
+                }
+
+                if (result.exitValue == 0) {
+                    workingCommit = commit
+                    break
+                }
+            } finally {
+                // Удаляем worktree даже при ошибках
+                removeGitWorktree(worktreeDir)
+            }
+        }
+
+        if (workingCommit != null) {
+            val brokenCommit = getNextCommitAfter(allCommits, workingCommit)
+            if (brokenCommit != null) {
+                createDiffFile(workingCommit, brokenCommit)
+                println("Diff saved to: diff_${workingCommit.take(7)}_${brokenCommit.take(7)}.diff")
+            } else {
+                println("No subsequent commits found")
+            }
+        } else {
+            println("No working commits found in history")
+        }
+    }
+}
+
+fun getGitCommitList(): List<String> {
+    val output = ByteArrayOutputStream()
+    project.exec {
+        commandLine = listOf("git", "rev-list", "--first-parent", "HEAD")
+        standardOutput = output
+    }
+    return output.toString().trim().split("\n").filter { it.isNotBlank() }
+}
+
+fun createGitWorktree(commit: String, dir: File) {
+    project.exec {
+        commandLine = listOf("git", "worktree", "add", "--detach", dir.absolutePath, commit)
+        assertNormalExitValue()
+    }
+}
+
+fun removeGitWorktree(dir: File) {
+    project.exec {
+        commandLine = listOf("git", "worktree", "remove", "--force", dir.absolutePath)
+        assertNormalExitValue()
+    }
+}
+
+fun getNextCommitAfter(commits: List<String>, workingCommit: String): String? {
+    val index = commits.indexOf(workingCommit)
+    return if (index > 0) commits[index - 1] else null
+}
+
+fun createDiffFile(fromCommit: String, toCommit: String) {
+    val diffFile = File("diff_${fromCommit.take(7)}_${toCommit.take(7)}.diff")
+    project.exec {
+        commandLine = listOf("git", "diff", "$fromCommit..$toCommit")
+        standardOutput = diffFile.outputStream()
+    }
+}
+
+
+tasks.named("clean") {
+    group = "lab"
+}
+
+tasks.named("build") {
+    group = "lab"
+}
+
+tasks.named("compileJava") {
+    group = "lab"
+}
+
+tasks.named("test") {
+    group = "lab"
+}
+
+tasks.named("verifyXml") {
+    group = "lab"
+}
+
+tasks.named("doc") {
+    group = "lab"
+}
+
+tasks.named("scp") {
+    group = "lab"
+}
+
+tasks.named("native2ascii") {
+    group = "lab"
+}
+
+tasks.named("team") {
+    group = "lab"
+}
+
+tasks.named("history") {
+    group = "lab"
+}
+
+tasks.named("report") {
+    group = "lab"
+}
+
+tasks.named("alt") {
+    group = "lab"
+}

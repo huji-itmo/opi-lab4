@@ -1,6 +1,5 @@
 package beans;
 
-
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -12,7 +11,7 @@ import exceptions.BadParameterException;
 import exceptions.MissingParametersException;
 import lombok.Data;
 
-@ManagedBean(name="graphStateBean", eager = true)
+@ManagedBean(name = "graphStateBean", eager = true)
 @SessionScoped
 @Data
 public class GraphStateBean {
@@ -33,11 +32,13 @@ public class GraphStateBean {
     @PostConstruct
     public void init() {
         dataBaseBean.cachePointsFromDatabase();
-        // pointsJsonCache = encoder.getEncodedHitTable("application/json", getCachedPoints().stream());
+        // pointsJsonCache = encoder.getEncodedHitTable("application/json",
+        // getCachedPoints().stream());
     }
 
     public List<HitResult> getCachedPoints() {
         return dataBaseBean.getCachedPoints();
+        skibidi
     }
 
     public void addPointToDatabase() {
@@ -53,7 +54,8 @@ public class GraphStateBean {
                 cachedDurationMilliSeconds = newPoint.getDurationMilliSeconds();
 
                 dataBaseBean.addPointToDatabase(newPoint);
-                // pointsJsonCache = encoder.getEncodedHitTable("application/json", getCachedPoints().stream());
+                // pointsJsonCache = encoder.getEncodedHitTable("application/json",
+                // getCachedPoints().stream());
             } catch (MissingParametersException | BadParameterException e) {
                 System.err.println(e.getMessage());
             }

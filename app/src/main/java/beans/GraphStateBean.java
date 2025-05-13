@@ -38,7 +38,6 @@ public class GraphStateBean {
 
     public List<HitResult> getCachedPoints() {
         return dataBaseBean.getCachedPoints();
-        skibidi
     }
 
     public void addPointToDatabase() {

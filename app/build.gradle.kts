@@ -20,7 +20,6 @@ plugins {
     id("java")
     id("war")
     id("io.freefair.lombok") version "8.10"
-
 }
 
 repositories {
@@ -472,7 +471,6 @@ fun ExecSpec.assertNormalExitValue() = apply {
 }
 
 //==================================
-
 tasks.register("history") {
     group = "history"
     description = "Finds last working commit and generates diff with first broken"
@@ -488,11 +486,9 @@ tasks.register("history") {
         for (commit in allCommits) {
             val worktreeDir = File(worktreesDir, commit.take(7))
             try {
-                // Создаем изолированную worktree для коммита
                 createGitWorktree(commit, worktreeDir)
                 println("Testing commit: ${commit.take(7)}")
 
-                // Пытаемся собрать проект в worktree
                 val result = project.exec {
                     workingDir = worktreeDir
                     commandLine = listOf("./gradlew", "build", "--no-daemon", "--stacktrace")
@@ -504,16 +500,14 @@ tasks.register("history") {
                     break
                 }
             } finally {
-                // Удаляем worktree даже при ошибках
-                removeGitWorktree(worktreeDir)
+                removeGitWorktree(worktreeDir) // Uncomment to clean up worktrees
             }
         }
 
         if (workingCommit != null) {
             val brokenCommit = getNextCommitAfter(allCommits, workingCommit)
             if (brokenCommit != null) {
-                createDiffFile(workingCommit, brokenCommit)
-                println("Diff saved to: diff_${workingCommit.take(7)}_${brokenCommit.take(7)}.diff")
+                createDiffFile(workingCommit, brokenCommit, buildDir)
             } else {
                 println("No subsequent commits found")
             }
@@ -528,11 +522,13 @@ fun getGitCommitList(): List<String> {
     project.exec {
         commandLine = listOf("git", "rev-list", "--first-parent", "HEAD")
         standardOutput = output
+        assertNormalExitValue()
     }
     return output.toString().trim().split("\n").filter { it.isNotBlank() }
 }
 
 fun createGitWorktree(commit: String, dir: File) {
+    dir.parentFile.mkdirs()
     project.exec {
         commandLine = listOf("git", "worktree", "add", "--detach", dir.absolutePath, commit)
         assertNormalExitValue()
@@ -542,7 +538,7 @@ fun createGitWorktree(commit: String, dir: File) {
 fun removeGitWorktree(dir: File) {
     project.exec {
         commandLine = listOf("git", "worktree", "remove", "--force", dir.absolutePath)
-        assertNormalExitValue()
+        isIgnoreExitValue = true // Tolerate failure if already removed
     }
 }
 
@@ -551,11 +547,19 @@ fun getNextCommitAfter(commits: List<String>, workingCommit: String): String? {
     return if (index > 0) commits[index - 1] else null
 }
 
-fun createDiffFile(fromCommit: String, toCommit: String) {
-    val diffFile = File("diff_${fromCommit.take(7)}_${toCommit.take(7)}.diff")
-    project.exec {
+fun createDiffFile(fromCommit: String, toCommit: String, buildDir: File) {
+    val diffFile = File(buildDir, "diff_${fromCommit.take(7)}_${toCommit.take(7)}.diff")
+    println("Generating diff between $fromCommit (working) and $toCommit (broken)...")
+    val result = project.exec {
         commandLine = listOf("git", "diff", "$fromCommit..$toCommit")
         standardOutput = diffFile.outputStream()
+        isIgnoreExitValue = true
+    }
+    if (result.exitValue == 0) {
+        println("Diff saved to: ${diffFile.absolutePath}")
+    } else {
+        diffFile.delete()
+        println("Error generating diff. Git exit code: ${result.exitValue}")
     }
 }
 

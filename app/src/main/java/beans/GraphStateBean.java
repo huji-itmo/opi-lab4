@@ -31,6 +31,7 @@ public class GraphStateBean {
 
     @PostConstruct
     public void init() {
+        skibidi
         dataBaseBean.cachePointsFromDatabase();
         // pointsJsonCache = encoder.getEncodedHitTable("application/json",
         // getCachedPoints().stream());

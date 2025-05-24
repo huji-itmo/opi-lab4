@@ -100,7 +100,7 @@ tasks.register("copyWar", Copy::class) {
     from("build/libs/") {
         include("*.war")
     }
-    into("docker/deoyments")
+    into("docker/deployments")
 }
 
 tasks.create("deploy_local") {

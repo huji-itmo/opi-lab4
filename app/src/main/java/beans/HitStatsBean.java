@@ -1,32 +1,54 @@
 package beans;
 
+import java.io.Serializable;
+
 import javax.annotation.PostConstruct;
 import javax.faces.bean.ApplicationScoped;
 import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
+import javax.faces.bean.SessionScoped;
 import javax.inject.Inject;
 
-@ManagedBean(name = "graphStateBean", eager = true)
+import lombok.Data;
+
+@ManagedBean(name = "hitStatsBean", eager = true)
 @ApplicationScoped
-public class HitStatsBean {
-    @Inject
-    GraphStateBean graphStateBean;
+@Data
+public class HitStatsBean implements Serializable {
 
-    private static int totalPoints = 0;
-    private static int totalHits = 0;
+    private int totalPoints = 0;
+    private int totalHits = 0;
 
-    @PostConstruct
-    public void init() {
-        graphStateBean.onNewHitResult.add(HitStatsBean::onNewHitResult);
+    private int consecutiveMisses = 0;
 
-    }
+    private boolean isNoob = false;
 
-    public static void onNewHitResult(HitResult res) {
+    public boolean getIsNoob() {
+        return isNoob;
+    };
+
+    public void onNewHitResult(HitResult res) {
         totalPoints++;
         if (res.getHit()) {
+            consecutiveMisses = 0;
             totalHits++;
+        } else {
+            consecutiveMisses++;
+
+            isNoob = consecutiveMisses % 4 == 0;
         }
 
         System.out.println("totalPoints=" + Integer.toString(totalPoints));
         System.out.println("totalHits=" + Integer.toString(totalHits));
+        System.out.println("consecutiveMisses=" + Integer.toString(consecutiveMisses));
+
+    }
+
+    public String getIsNoobMessage() {
+        if (isNoob) {
+            return "GIT GUD";
+        } else {
+            return null;
+        }
     }
 }

@@ -32,11 +32,16 @@ public class GraphStateBean {
     @Inject
     private DataBaseBean dataBaseBean;
 
+    @Inject
+    private HitStatsBean hitStatsBean;
+
+    public String getIsNoobMessage() {
+        return hitStatsBean.getIsNoobMessage();
+    }
+
     @PostConstruct
     public void init() {
         dataBaseBean.cachePointsFromDatabase();
-        // pointsJsonCache = encoder.getEncodedHitTable("application/json",
-        // getCachedPoints().stream());
     }
 
     public List<HitResult> getCachedPoints() {
@@ -56,8 +61,8 @@ public class GraphStateBean {
                 cachedDurationMilliSeconds = newPoint.getDurationMilliSeconds();
 
                 dataBaseBean.addPointToDatabase(newPoint);
-                // pointsJsonCache = encoder.getEncodedHitTable("application/json",
-                // getCachedPoints().stream());
+
+                hitStatsBean.onNewHitResult(newPoint);
             } catch (MissingParametersException | BadParameterException e) {
                 System.err.println(e.getMessage());
             }

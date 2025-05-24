@@ -1,6 +1,8 @@
 package beans;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import javax.annotation.PostConstruct;
 import javax.faces.bean.ManagedBean;
@@ -25,13 +27,13 @@ public class GraphStateBean {
     private String cachedServerTime = null;
     private String cachedDurationMilliSeconds = null;
 
-    // private String pointsJsonCache = "";
+    public List<Consumer<HitResult>> onNewHitResult = new ArrayList<Consumer<HitResult>>();
+
     @Inject
     private DataBaseBean dataBaseBean;
 
     @PostConstruct
     public void init() {
-        skibidi
         dataBaseBean.cachePointsFromDatabase();
         // pointsJsonCache = encoder.getEncodedHitTable("application/json",
         // getCachedPoints().stream());

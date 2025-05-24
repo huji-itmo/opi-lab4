@@ -269,6 +269,8 @@
                         rendered="#{not empty graphStateBean.isNoobMessage}"
                         style="color: red"
                     />
+
+                    <h:outputText value="#{graphStateBean.percent}" />
                 </h:panelGroup>
                 <h:dataTable
                     id="table"

@@ -35,8 +35,15 @@ public class GraphStateBean {
     @Inject
     private HitStatsBean hitStatsBean;
 
+    @Inject
+    private HitPercentBean hitPercentBean;
+
     public String getIsNoobMessage() {
         return hitStatsBean.getIsNoobMessage();
+    }
+
+    public float getPercent() {
+        return hitPercentBean.getPercent(hitStatsBean);
     }
 
     @PostConstruct

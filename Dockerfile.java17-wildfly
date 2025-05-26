@@ -1,0 +1,44 @@
+FROM openjdk:17
+
+WORKDIR /opt/jboss
+ARG WILDFLY_VERSION
+
+ARG JCONSOLE_PORT
+
+ARG WILDFLY_USERNAME
+ARG WILDFLY_PASSWORD
+ARG WILDFLY_GROUP
+
+ADD wildfly_resources/wildfly-${WILDFLY_VERSION}.tar.gz .
+RUN mv wildfly-${WILDFLY_VERSION} wildfly
+
+ENV WILDFLY_VERSION=${WILDFLY_VERSION}
+ENV LAUNCH_JBOSS_IN_BACKGROUND=true
+ENV WILDFLY_HOME=/opt/jboss/wildfly
+
+EXPOSE 8080
+EXPOSE $JCONSOLE_PORT
+
+ENV CONFIGURATION_PATH=${WILDFLY_HOME}/standalone/configuration/standalone.xml
+
+RUN rm $CONFIGURATION_PATH
+ADD standalone.xml $CONFIGURATION_PATH
+
+RUN ${WILDFLY_HOME}/bin/add-user.sh -s -ma \
+-u "${WILDFLY_USERNAME}" \
+-p "${WILDFLY_PASSWORD}" \
+-g "${WILDFLY_GROUP}"
+
+
+RUN chmod +x "/opt/jboss/wildfly/bin/standalone.sh"
+
+CMD ["/opt/jboss/wildfly/bin/standalone.sh", \
+        "-b", "0.0.0.0", \
+        "-Dcom.sun.management.jmxremote", \
+        "-Dcom.sun.management.jmxremote.authenticate=false", \
+        "-Dcom.sun.management.jmxremote.ssl=false", \
+        "-Dcom.sun.management.jmxremote.port=${JCONSOLE_PORT}", \
+        "-Dcom.sun.management.jmxremote.rmi.port=${JCONSOLE_PORT}", \
+        "-Djava.rmi.server.hostname=0.0.0.0", \
+        "-Djboss.bind.address.management=0.0.0.0", \
+        "-Djboss.bind.address=0.0.0.0"]

@@ -100,7 +100,7 @@ tasks.register("copyWar", Copy::class) {
     from("build/libs/") {
         include("*.war")
     }
-    into("docker/deployments")
+    into("deployments")
 }
 
 tasks.create("deploy_local") {
@@ -109,7 +109,7 @@ tasks.create("deploy_local") {
 
     doLast {
         exec {
-            workingDir("../docker")
+            workingDir(".")
             commandLine("docker", "compose", "up")
         }
     }

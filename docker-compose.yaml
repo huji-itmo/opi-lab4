@@ -4,10 +4,15 @@ services:
       context: .
       dockerfile: Dockerfile.java17-wildfly
       args:
-        WILDFLY_VERSION: 20.0.1.Final
-    container_name: java17-wildfly-20.0.1.Final
+        - JCONSOLE_PORT=${JCONSOLE_PORT}
+        - WILDFLY_VERSION=${WILDFLY_VER}
+        - WILDFLY_USERNAME=${WILDFLY_USERNAME}
+        - WILDFLY_PASSWORD=${WILDFLY_PASSWORD}
+        - WILDFLY_GROUP=${WILDFLY_GROUP}
+    container_name: java17-wildfly-${WILDFLY_VER}
     ports:
       - 8080:8080
+      - ${JCONSOLE_PORT}:9990
     networks:
       - wildfly-network
     volumes:

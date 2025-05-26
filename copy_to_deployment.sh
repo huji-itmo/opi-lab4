@@ -2,4 +2,4 @@
 
 cd ..
 gradle war
-cp app/build/libs/*.war docker/deployments/
+cp app/build/libs/*.war deployments/

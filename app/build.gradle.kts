@@ -563,6 +563,25 @@ fun createDiffFile(fromCommit: String, toCommit: String, buildDir: File) {
     }
 }
 
+tasks.create("launch_jconsole_local") {
+
+    doLast {
+        exec {
+            workingDir(".")
+            commandLine("jconsole", "-J-Djava.class.path=wildfly_exposed_jars/jboss-client.jar")
+        }
+    }
+}
+
+tasks.create("launch_jvisualvm_local") {
+
+    doLast {
+        exec {
+            workingDir(".")
+            commandLine("visualvm", "--jdkhome", "/usr/lib/jvm/java-17-openjdk-amd64", "--cp:a", "wildfly_exposed_jars/jboss-client.jar")
+        }
+    }
+}
 
 tasks.named("clean") {
     group = "lab"

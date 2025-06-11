@@ -1,5 +1,6 @@
 package beans;
 
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -8,15 +9,22 @@ import javax.annotation.PostConstruct;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 import javax.inject.Inject;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import javax.management.StandardMBean;
 
 import exceptions.BadParameterException;
 import exceptions.MissingParametersException;
+import interfaces.IDataBaseMBean;
+import interfaces.IGraphStateMBean;
+import interfaces.IHitPercentMBean;
+import interfaces.IHitStatsMBean;
 import lombok.Data;
 
 @ManagedBean(name = "graphStateBean", eager = true)
 @SessionScoped
 @Data
-public class GraphStateBean {
+public class GraphStateBean implements IGraphStateMBean {
     // private DataEncoder encoder = new JsonEncoder();
 
     private Long XToSend = 0L;
@@ -30,31 +38,44 @@ public class GraphStateBean {
     public List<Consumer<HitResult>> onNewHitResult = new ArrayList<Consumer<HitResult>>();
 
     @Inject
-    private DataBaseBean dataBaseBean;
+    private IDataBaseMBean dataBaseBean;
 
     @Inject
-    private HitStatsBean hitStatsBean;
+    private IHitStatsMBean hitStatsBean;
 
     @Inject
-    private HitPercentBean hitPercentBean;
+    private IHitPercentMBean hitPercentBean;
 
+    @Override
     public String getIsNoobMessage() {
         return hitStatsBean.getIsNoobMessage();
     }
 
+    @Override
     public float getPercent() {
         return hitPercentBean.getPercent(hitStatsBean);
     }
 
     @PostConstruct
     public void init() {
+        try {
+            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+            ObjectName name = new ObjectName("com.example.beans:type=graphStateBean,name=graphStateBean");
+            StandardMBean mbean = new StandardMBean(this, IGraphStateMBean.class);
+            mbs.registerMBean(mbean, name);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         dataBaseBean.cachePointsFromDatabase();
     }
 
+    @Override
     public List<HitResult> getCachedPoints() {
         return dataBaseBean.getCachedPoints();
     }
 
+    @Override
     public void addPointToDatabase() {
         if (isFormValid()) {
             try {
@@ -76,6 +97,7 @@ public class GraphStateBean {
         }
     }
 
+    @Override
     public boolean isFormValid() {
         return XToSend != null && YToSend != null && RToSend != null;
     }

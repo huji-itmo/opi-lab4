@@ -1,27 +1,42 @@
 package beans;
 
+import java.io.Serializable;
+import java.lang.management.ManagementFactory;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.faces.bean.ApplicationScoped;
 import javax.faces.bean.ManagedBean;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import javax.management.StandardMBean;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
 import hibernateHelpers.HibernateSessionFactory;
+import interfaces.IDataBaseMBean;
 import lombok.Getter;
 
 @ManagedBean(name = "dataBase", eager = true)
 @ApplicationScoped
 @Getter
-public class DataBaseBean {
+public class DataBaseBean implements IDataBaseMBean {
     private SessionFactory sessionFactory;
     private List<HitResult> cachedPoints;
 
     @PostConstruct
     public void init() {
+        try {
+            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+            ObjectName name = new ObjectName("com.example.beans:type=dataBase,name=dataBase");
+            StandardMBean mbean = new StandardMBean(this, IDataBaseMBean.class);
+            mbs.registerMBean(mbean, name);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         try {
             sessionFactory = HibernateSessionFactory.getSessionFactory();
         } catch (Throwable ex) {
@@ -30,6 +45,7 @@ public class DataBaseBean {
         }
     }
 
+    @Override
     public void addPointToDatabase(HitResult hitResult) {
         cachedPoints.add(hitResult);
 
@@ -47,12 +63,14 @@ public class DataBaseBean {
         }
     }
 
+    @Override
     public void shutdown() {
         if (sessionFactory != null) {
             sessionFactory.close();
         }
     }
 
+    @Override
     public List<HitResult> cachePointsFromDatabase() {
         try (Session session = sessionFactory.openSession()) {
             cachedPoints = session.createQuery("FROM HitResult", HitResult.class).getResultList();

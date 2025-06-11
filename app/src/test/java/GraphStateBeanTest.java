@@ -5,11 +5,12 @@ import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 import beans.*;
 import exceptions.*;
+import interfaces.IGraphStateMBean;
 
 class GraphStateBeanTest {
 
     @InjectMocks
-    private GraphStateBean graphStateBean;
+    private IGraphStateMBean graphStateBean;
 
     @Mock
     private DataBaseBean dataBaseBean;
